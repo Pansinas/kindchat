@@ -1,0 +1,128 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Pairvella design tokens: warm off-white, soft cream, muted lavender, charcoal. */
+:root {
+  --background: #f7f4ee;
+  --foreground: #2b2a33;
+  --card: #fffdf9;
+  --card-foreground: #2b2a33;
+  --popover: #fffdf9;
+  --popover-foreground: #2b2a33;
+  --primary: #2b2a33;
+  --primary-foreground: #fffdf9;
+  --secondary: #efeae1;
+  --secondary-foreground: #2b2a33;
+  --muted: #efeae1;
+  --muted-foreground: #6f6b78;
+  --accent: #ece8f6;
+  --accent-foreground: #4b4170;
+  --lavender: #8e80c4;
+  --destructive: #b4493f;
+  --destructive-foreground: #fffdf9;
+  --success: #4f7d5c;
+  --border: #e7e1d6;
+  --input: #e2dbcf;
+  --ring: #a99dd6;
+  --bubble-mine: #2f2d3a;
+  --bubble-mine-foreground: #fbf9f4;
+  --bubble-theirs: #fffdf9;
+  --bubble-theirs-foreground: #2b2a33;
+  --radius: 0.875rem;
+}
+
+.dark {
+  --background: #16151a;
+  --foreground: #ece9f2;
+  --card: #1e1d24;
+  --card-foreground: #ece9f2;
+  --popover: #1e1d24;
+  --popover-foreground: #ece9f2;
+  --primary: #ece9f2;
+  --primary-foreground: #16151a;
+  --secondary: #26252d;
+  --secondary-foreground: #ece9f2;
+  --muted: #26252d;
+  --muted-foreground: #a29fad;
+  --accent: #2a2638;
+  --accent-foreground: #d5cdf3;
+  --lavender: #a79bdb;
+  --destructive: #d46a5f;
+  --destructive-foreground: #16151a;
+  --success: #7fb08c;
+  --border: #2e2d36;
+  --input: #34333d;
+  --ring: #8e80c4;
+  --bubble-mine: #4a4268;
+  --bubble-mine-foreground: #f4f1fb;
+  --bubble-theirs: #24232b;
+  --bubble-theirs-foreground: #ece9f2;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-lavender: var(--lavender);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-bubble-mine: var(--bubble-mine);
+  --color-bubble-mine-foreground: var(--bubble-mine-foreground);
+  --color-bubble-theirs: var(--bubble-theirs);
+  --color-bubble-theirs-foreground: var(--bubble-theirs-foreground);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--lavender) 30%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
