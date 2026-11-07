@@ -1,20 +1,25 @@
 "use client";
 
-import { ArrowUp } from "lucide-react";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { ArrowUp, Reply, X } from "lucide-react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { EmojiPicker } from "@/components/chat/emoji-picker";
 import { useConversation } from "@/components/providers/conversation-provider";
 import { Button } from "@/components/ui/button";
-import { MESSAGE_MAX_LENGTH, codePointLength, validateBody } from "@/lib/domain/messages";
+import { MESSAGE_MAX_LENGTH, codePointLength, replySnippet, validateBody } from "@/lib/domain/messages";
 import { cn } from "@/lib/utils";
 
 export function Composer({ partnerName }: { partnerName: string }) {
-  const { send, notifyTyping, stopTyping } = useConversation();
+  const { send, notifyTyping, stopTyping, replyingTo, setReplyingTo, userId } = useConversation();
   const [text, setText] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
   const length = codePointLength(text);
   const valid = validateBody(text).ok;
   const nearLimit = length > MESSAGE_MAX_LENGTH - 500;
+
+  // Focus the box when a reply is started.
+  useEffect(() => {
+    if (replyingTo) ref.current?.focus();
+  }, [replyingTo]);
 
   function resize() {
     const el = ref.current;
@@ -33,6 +38,11 @@ export function Composer({ partnerName }: { partnerName: string }) {
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Escape" && replyingTo) {
+      e.preventDefault();
+      setReplyingTo(null);
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       submit();
@@ -54,6 +64,25 @@ export function Composer({ partnerName }: { partnerName: string }) {
 
   return (
     <div className="border-t border-border bg-card/80 px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-5">
+      {replyingTo ? (
+        <div className="mb-2 flex items-center gap-2.5 rounded-xl border-l-[3px] border-lavender bg-accent/60 py-1.5 pr-1.5 pl-3" role="status">
+          <Reply className="size-4 shrink-0 text-accent-foreground" aria-hidden />
+          <div className="min-w-0 flex-1 text-[13px] leading-snug">
+            <p className="font-semibold text-accent-foreground">
+              Replying to {replyingTo.sender_id === userId ? "yourself" : partnerName}
+            </p>
+            <p className="truncate text-muted-foreground">{replySnippet(replyingTo)}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setReplyingTo(null)}
+            className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Cancel reply"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      ) : null}
       <form
         className="flex items-end gap-1.5"
         onSubmit={(e) => {

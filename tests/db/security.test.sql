@@ -319,4 +319,20 @@ select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004');
 select pg_temp.check((public.get_partner_status() ->> 'timezone') = 'Asia/Kolkata', 'partner time zone is shared with the partner');
 reset role;
 
+-- ---------------------------------------------------------------- replies
+set role authenticated;
+select pg_temp.as_user('99999999-0000-0000-0000-000000000009');
+create temp table orig as select id from public.messages where conversation_id = (select id from fc) order by seq limit 1;
+grant select on orig to authenticated;
+select pg_temp.check((public.send_message((select id from fc), 'Replying to your welcome', gen_random_uuid(), (select id from orig))).reply_to_id = (select id from orig), 'a reply stores the quoted message');
+select pg_temp.check((select count(*) from realtime.messages where event = 'message.created' and payload ->> 'reply_to_id' = (select id::text from orig)) = 1, 'the realtime payload carries reply_to_id');
+select pg_temp.check((public.send_message((select id from fc), 'plain message', gen_random_uuid())).reply_to_id is null, 'messages without a reply still work (3-argument call)');
+reset role;
+create temp table other_msg as select m.id from public.messages m join public.conversations c on c.id = m.conversation_id where c.kind = 'founder' and c.member_user_id <> '99999999-0000-0000-0000-000000000009' limit 1;
+grant select on other_msg to authenticated;
+set role authenticated;
+select pg_temp.as_user('99999999-0000-0000-0000-000000000009');
+select pg_temp.expect_error($$select public.send_message((select id from fc), 'cross-chat reply', gen_random_uuid(), (select id from other_msg))$$, 'INVALID_REPLY');
+reset role;
+
 select 'ALL DATABASE TESTS PASSED' as result;

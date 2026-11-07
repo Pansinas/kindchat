@@ -14,12 +14,15 @@ export interface Message {
   created_at: string;
   edited_at: string | null;
   deleted_at: string | null;
+  /** The message this one replies to (same conversation), if any. */
+  reply_to_id?: string | null;
 }
 
 export interface PendingMessage {
   client_message_id: string;
   body: string;
   created_at: string;
+  reply_to_id?: string | null;
   status: "sending" | "failed";
   error?: string;
 }
@@ -87,6 +90,15 @@ export function latestSeqFrom(messages: Message[], senderNot: string): number {
 
 export function unreadCount(messages: Message[], myId: string, myLastReadSeq: number): number {
   return messages.filter((m) => m.sender_id !== myId && !m.deleted_at && m.seq > myLastReadSeq).length;
+}
+
+/** One-line preview of a quoted message for reply bars and quote blocks. */
+export function replySnippet(message: Pick<Message, "body" | "deleted_at"> | null | undefined, max = 90): string {
+  if (!message) return "Original message unavailable";
+  if (message.deleted_at || message.body === null) return "Message deleted";
+  const oneLine = message.body.replace(/\s+/g, " ").trim();
+  const chars = Array.from(oneLine);
+  return chars.length > max ? `${chars.slice(0, max - 1).join("")}…` : oneLine;
 }
 
 export function isSameDay(a: string, b: string): boolean {

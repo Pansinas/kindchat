@@ -4,6 +4,7 @@ import { ArrowRight, Clock, MessageCircle, Sparkles, UserPlus } from "lucide-rea
 import Link from "next/link";
 import { PartnerLocalTime } from "@/components/chat/partner-local-time";
 import { PageHeader } from "@/components/layout/page-header";
+import { InstallHint } from "@/components/pwa/install";
 import { RequestList } from "@/components/pairing/request-list";
 import { useAppState } from "@/components/providers/app-state-provider";
 import { useOptionalConversation } from "@/components/providers/conversation-provider";
@@ -28,6 +29,7 @@ export function DashboardView() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
+      <InstallHint />
       <PageHeader title={`${greeting()}, ${name}`} description={state.couple ? "Your space is ready." : "Let’s bring your person here."} />
 
       {state.ended_couple && !state.couple ? (

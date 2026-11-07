@@ -41,6 +41,9 @@ interface State {
   lastSeenVisible: boolean;
   partnerTimezone: string | null;
   connection: Connection;
+  /** Quoted messages that are not in the loaded window (fetched on demand). */
+  quoted: Record<string, Message>;
+  replyingTo: Message | null;
 }
 
 type Action =
@@ -56,7 +59,9 @@ type Action =
   | { type: "typing"; value: boolean }
   | { type: "online"; value: boolean }
   | { type: "lastSeen"; status: PartnerStatus | null }
-  | { type: "connection"; value: Connection };
+  | { type: "connection"; value: Connection }
+  | { type: "quoted"; messages: Message[] }
+  | { type: "replyTo"; message: Message | null };
 
 const initialState: State = {
   status: "loading",
@@ -71,6 +76,8 @@ const initialState: State = {
   lastSeenVisible: true,
   partnerTimezone: null,
   connection: "connecting",
+  quoted: {},
+  replyingTo: null,
 };
 
 function mergeCursor(prev: ReceiptCursor | undefined, next: ReceiptCursor): ReceiptCursor {
@@ -121,6 +128,13 @@ function reducer(state: State, action: Action): State {
       };
     case "connection":
       return { ...state, connection: action.value };
+    case "quoted": {
+      const quoted = { ...state.quoted };
+      for (const m of action.messages) quoted[m.id] = m;
+      return { ...state, quoted };
+    }
+    case "replyTo":
+      return { ...state, replyingTo: action.message };
   }
 }
 
@@ -132,6 +146,10 @@ export interface ConversationValue extends State {
   /** Whether the partner's online state may be shown (reciprocal visibility). */
   showPresence: boolean;
   send: (text: string) => Promise<boolean>;
+  /** Start (or cancel with null) replying to a message. */
+  setReplyingTo: (message: Message | null) => void;
+  /** Looks up a message by id in the loaded window or the quoted cache. */
+  findMessage: (id: string) => Message | undefined;
   retry: (clientMessageId: string) => Promise<void>;
   discard: (clientMessageId: string) => void;
   loadOlder: () => Promise<void>;
@@ -153,7 +171,7 @@ export function useOptionalConversation(): ConversationValue | null {
   return use(ConversationContext);
 }
 
-const MESSAGE_COLUMNS = "id, seq, conversation_id, sender_id, client_message_id, kind, body, created_at, edited_at, deleted_at";
+const MESSAGE_COLUMNS = "id, seq, conversation_id, sender_id, client_message_id, kind, body, created_at, edited_at, deleted_at, reply_to_id";
 
 function isMessagePayload(value: unknown, conversationId: string): value is Message {
   if (!value || typeof value !== "object") return false;
@@ -425,6 +443,35 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
     return () => window.clearTimeout(timer);
   }, [latestPartnerSeq, myCursor?.last_delivered_seq, supabase, conversationId]);
 
+  // Fetch quoted messages that are outside the loaded window (e.g. a reply to an old message).
+  const missingQuoted = useMemo(() => {
+    const loaded = new Set(state.messages.map((m) => m.id));
+    const ids = new Set<string>();
+    for (const m of state.messages) if (m.reply_to_id && !loaded.has(m.reply_to_id) && !state.quoted[m.reply_to_id]) ids.add(m.reply_to_id);
+    for (const p of state.pending) if (p.reply_to_id && !loaded.has(p.reply_to_id) && !state.quoted[p.reply_to_id]) ids.add(p.reply_to_id);
+    return [...ids].sort().join(",");
+  }, [state.messages, state.pending, state.quoted]);
+  useEffect(() => {
+    if (!missingQuoted) return;
+    let active = true;
+    supabase
+      .from("messages")
+      .select(MESSAGE_COLUMNS)
+      .in("id", missingQuoted.split(","))
+      .then(({ data }) => {
+        if (active && data?.length) dispatch({ type: "quoted", messages: data as Message[] });
+      });
+    return () => {
+      active = false;
+    };
+  }, [missingQuoted, supabase]);
+
+  const setReplyingTo = useCallback((message: Message | null) => dispatch({ type: "replyTo", message }), []);
+  const findMessage = useCallback(
+    (id: string) => stateRef.current.messages.find((m) => m.id === id) ?? stateRef.current.quoted[id],
+    [],
+  );
+
   const markRead = useCallback(() => {
     const s = stateRef.current;
     if (!chatOpenRef.current || document.visibilityState !== "visible" || !document.hasFocus()) return;
@@ -450,11 +497,12 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
   }, [userId]);
 
   const deliver = useCallback(
-    async (clientMessageId: string, body: string) => {
+    async (clientMessageId: string, body: string, replyToId: string | null) => {
       const { data, error } = await supabase.rpc("send_message", {
         p_conversation_id: conversationId,
         p_body: body,
         p_client_message_id: clientMessageId,
+        ...(replyToId ? { p_reply_to: replyToId } : {}),
       });
       if (error || !data) {
         dispatch({ type: "pendingUpdate", id: clientMessageId, patch: { status: "failed", error: errorCodeFrom(error) } });
@@ -471,12 +519,20 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
       const validation = validateBody(text);
       if (!validation.ok) return false;
       const clientMessageId = crypto.randomUUID();
+      const replyToId = stateRef.current.replyingTo?.id ?? null;
       dispatch({
         type: "pendingAdd",
-        item: { client_message_id: clientMessageId, body: validation.body, created_at: new Date().toISOString(), status: "sending" },
+        item: {
+          client_message_id: clientMessageId,
+          body: validation.body,
+          created_at: new Date().toISOString(),
+          status: "sending",
+          reply_to_id: replyToId,
+        },
       });
+      dispatch({ type: "replyTo", message: null });
       stopTyping();
-      await deliver(clientMessageId, validation.body);
+      await deliver(clientMessageId, validation.body, replyToId);
       return true;
     },
     [deliver, stopTyping],
@@ -488,7 +544,7 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
       if (!item) return;
       dispatch({ type: "pendingUpdate", id: clientMessageId, patch: { status: "sending", error: undefined } });
       // Same client_message_id => idempotent on the server, no duplicates.
-      await deliver(clientMessageId, item.body);
+      await deliver(clientMessageId, item.body, item.reply_to_id ?? null);
     },
     [deliver],
   );
@@ -538,6 +594,8 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
       unread,
       showPresence: settings.show_online_status,
       send,
+      setReplyingTo,
+      findMessage,
       retry,
       discard,
       loadOlder,
@@ -546,7 +604,7 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
       stopTyping,
       setChatOpen,
     }),
-    [state, conversationId, userId, partnerId, unread, settings.show_online_status, send, retry, discard, loadOlder, markRead, notifyTyping, stopTyping, setChatOpen],
+    [state, conversationId, userId, partnerId, unread, settings.show_online_status, send, setReplyingTo, findMessage, retry, discard, loadOlder, markRead, notifyTyping, stopTyping, setChatOpen],
   );
 
   return <ConversationContext value={value}>{children}</ConversationContext>;

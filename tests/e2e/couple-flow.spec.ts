@@ -77,9 +77,26 @@ test("two people pair by username, chat in real time, and disconnect", async ({ 
   await expect(a.getByLabel("Seen")).toHaveCount(3, { timeout: 15_000 });
   await expect(a.getByLabel("Sent", { exact: true })).toHaveCount(0);
 
+  // Read ticks are green.
+  const tickColor = await a.getByLabel("Seen").first().locator("svg").evaluate((el) => getComputedStyle(el).color);
+  expect(tickColor).toBe("rgb(22, 163, 74)");
+
+  // Reply to a specific message (desktop: hover + reply button).
+  await b.getByText("Hello Alex 👋").hover();
+  await b.locator('[id^="msg-"]', { hasText: "Hello Alex 👋" }).getByRole("button", { name: "Reply to this message" }).click();
+  await expect(b.getByText("Replying to Maya")).toBeVisible();
+  await sendMessage(b, "Hello to you too!");
+  await expect(b.getByText("Replying to Maya")).toHaveCount(0);
+  // Both sides see the quoted original above the reply.
+  await expect(a.getByRole("button", { name: /Replying to You: Hello Alex 👋/ })).toBeVisible();
+  await expect(b.getByRole("button", { name: /Replying to Maya: Hello Alex 👋/ })).toBeVisible();
+  // Tapping the quote highlights the original message.
+  await a.getByRole("button", { name: /Replying to You: Hello Alex 👋/ }).click();
+  await expect(a.locator('[id^="msg-"]', { hasText: "Hello Alex 👋" }).first().locator(".ring-2")).toHaveCount(1);
+
   // Persistence: reload and the history is loaded from Postgres.
   await a.reload();
-  await expect(a.getByText("Hello Alex 👋")).toBeVisible();
+  await expect(a.getByText("Hello Alex 👋").first()).toBeVisible();
   await expect(a.getByText("Hi Maya! 🌙")).toBeVisible();
 
   // Disconnect with confirmation.

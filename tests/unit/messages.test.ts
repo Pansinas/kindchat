@@ -7,6 +7,7 @@ import {
   latestSeqFrom,
   mergeMessages,
   reconcilePending,
+  replySnippet,
   unreadCount,
   validateBody,
   type Message,
@@ -87,5 +88,18 @@ describe("receipts", () => {
     const list = [msg(1, "p"), msg(2, "me"), msg(3, "p"), msg(4, "p", { deleted_at: "x", body: null })];
     expect(unreadCount(list, "me", 1)).toBe(1);
     expect(latestSeqFrom(list, "me")).toBe(4);
+  });
+});
+
+describe("replySnippet", () => {
+  it("collapses whitespace and truncates long quotes by code points", () => {
+    expect(replySnippet({ body: "Hello\n\n  there", deleted_at: null })).toBe("Hello there");
+    const long = replySnippet({ body: "😀".repeat(100), deleted_at: null }, 10);
+    expect(Array.from(long)).toHaveLength(10);
+    expect(long.endsWith("…")).toBe(true);
+  });
+  it("handles deleted or unavailable originals", () => {
+    expect(replySnippet({ body: null, deleted_at: "2026-01-01" })).toBe("Message deleted");
+    expect(replySnippet(undefined)).toBe("Original message unavailable");
   });
 });

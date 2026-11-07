@@ -2,6 +2,7 @@
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { InstallApp } from "@/components/pwa/install";
 import { AccountSettings } from "@/components/settings/account-settings";
 import { DeleteAccount, DisconnectPartner, ExportData, SessionControls } from "@/components/settings/data-settings";
 import { AppearanceSettings, NotificationSettings, PrivacySettings } from "@/components/settings/preference-settings";
@@ -13,6 +14,7 @@ const SECTIONS = [
   ["privacy", "Privacy"],
   ["notifications", "Notifications"],
   ["appearance", "Appearance"],
+  ["install", "Install app"],
   ["data", "Your data"],
   ["partner", "Partner"],
   ["danger", "Delete account"],
@@ -49,6 +51,9 @@ export function SettingsView() {
           </SettingsSection>
           <SettingsSection id="appearance" title="Appearance">
             <AppearanceSettings />
+          </SettingsSection>
+          <SettingsSection id="install" title="Install app" description="Use KindChat from your home screen on iPhone, iPad and Android.">
+            <InstallApp />
           </SettingsSection>
           <SettingsSection id="data" title="Your data">
             <ExportData />

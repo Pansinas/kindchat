@@ -25,7 +25,7 @@ interface Preview {
 export default function InvitePage({ params }: PageProps<"/invite/[token]">) {
   return (
     <div className="flex min-h-dvh flex-col items-center px-4 py-8 sm:justify-center">
-      <Logo className="mb-8" />
+      <Logo className="mb-8" size="lg" />
       <main className="w-full max-w-[420px]">
         <Suspense fallback={<Skeleton className="h-80 rounded-2xl" />}>
           <Invitation params={params} />
