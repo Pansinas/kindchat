@@ -25,7 +25,7 @@ export function ConnectView() {
 
   return (
     <div className="mx-auto grid w-full max-w-2xl gap-6 px-5 py-8 sm:px-8 sm:py-12">
-      <PageHeader title="Connect with your partner" description="Pairvella is for exactly two people. Choose how you'd like to connect." />
+      <PageHeader title="Connect with your partner" description="KindChat is for exactly two people. Choose how you'd like to connect." />
 
       {state.incoming_requests.length ? (
         <Card>
@@ -42,7 +42,7 @@ export function ConnectView() {
       <Card>
         <CardHeader>
           <CardTitle>Find by username</CardTitle>
-          <CardDescription>Ask your partner for their exact Pairvella username.</CardDescription>
+          <CardDescription>Ask your partner for their exact KindChat username.</CardDescription>
         </CardHeader>
         <CardContent>
           <UsernameSearch />
@@ -52,7 +52,7 @@ export function ConnectView() {
       <Card>
         <CardHeader>
           <CardTitle>Invite with a private link</CardTitle>
-          <CardDescription>Not on Pairvella yet? Send them a one-time link. They can create an account and accept it.</CardDescription>
+          <CardDescription>Not on KindChat yet? Send them a one-time link. They can create an account and accept it.</CardDescription>
         </CardHeader>
         <CardContent>
           <InvitePanel />

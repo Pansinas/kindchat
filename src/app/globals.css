@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Pairvella design tokens: warm off-white, soft cream, muted lavender, charcoal. */
+/* KindChat design tokens: warm off-white, soft cream, muted lavender, charcoal. */
 :root {
   --background: #f7f4ee;
   --foreground: #2b2a33;

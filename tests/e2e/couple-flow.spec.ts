@@ -109,7 +109,7 @@ test("invitation link pairs a brand-new user and is single-use", async ({ browse
   // A visitor sees who invited them, signs up, and accepts.
   const visitor = await (await browser.newContext()).newPage();
   await visitor.goto(path);
-  await expect(visitor.getByRole("heading", { name: "Sam invited you to Pairvella" })).toBeVisible();
+  await expect(visitor.getByRole("heading", { name: "Sam invited you to KindChat" })).toBeVisible();
 
   const b = await register(browser, `riley_${suffix}`, "Riley", path);
   await expect(b).toHaveURL(new RegExp(path));

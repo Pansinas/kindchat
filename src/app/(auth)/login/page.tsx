@@ -19,7 +19,7 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          New to Pairvella?{" "}
+          New to KindChat?{" "}
           <Link href="/register" className="font-medium text-foreground underline-offset-4 hover:underline">
             Create an account
           </Link>

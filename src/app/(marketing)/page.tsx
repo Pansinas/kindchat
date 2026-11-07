@@ -32,7 +32,7 @@ export default function LandingPage() {
             A quieter place for two.
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-pretty">
-            Pairvella gives you and your partner a calm, private space to talk — away from group chats, notifications
+            KindChat gives you and your partner a calm, private space to talk — away from group chats, notifications
             and noise. Just your conversation, kept safe.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">

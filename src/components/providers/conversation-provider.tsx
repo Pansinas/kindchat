@@ -288,7 +288,7 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
           if (prefs.notify_sound) playChime();
           if (prefs.notify_desktop && "Notification" in window && Notification.permission === "granted") {
             // Privacy: never put message content in OS notifications.
-            new Notification(partnerName, { body: "New message", tag: `pairvella-${conversationId}` });
+            new Notification(partnerName, { body: "New message", tag: `kindchat-${conversationId}` });
           }
         }
       }

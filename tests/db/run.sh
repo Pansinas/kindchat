@@ -3,7 +3,7 @@
 # Usage: PGHOST=... PGPORT=... PGUSER=... tests/db/run.sh
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-DB="pairvella_test_$$"
+DB="kindchat_test_$$"
 createdb "$DB"
 trap 'dropdb --if-exists "$DB" >/dev/null 2>&1 || true' EXIT
 run() { psql -v ON_ERROR_STOP=1 -q -d "$DB" "$@"; }

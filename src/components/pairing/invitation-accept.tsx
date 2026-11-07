@@ -38,7 +38,7 @@ export function InvitationAccept({ token, inviterName, signedIn, alreadyPaired }
   if (alreadyPaired) {
     return (
       <Alert>
-        You&apos;re already connected with a partner. Pairvella supports one partner at a time.{" "}
+        You&apos;re already connected with a partner. KindChat supports one partner at a time.{" "}
         <Link href="/dashboard" className="underline underline-offset-2">Go to your space</Link>
       </Alert>
     );

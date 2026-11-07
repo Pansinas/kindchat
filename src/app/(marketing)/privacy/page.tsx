@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <section>
         <h2>The short version</h2>
         <p>
-          Pairvella exists so two people can talk privately. We collect only what we need to run the service, we never
+          KindChat exists so two people can talk privately. We collect only what we need to run the service, we never
           sell your data, and we never show you ads.
         </p>
       </section>
