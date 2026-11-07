@@ -66,7 +66,7 @@ export default function LandingPage() {
                 Already putting the kettle on.
               </p>
               <span className="flex items-center gap-1 self-end text-xs text-muted-foreground">
-                Seen <CheckCheck className="size-3.5 text-lavender" />
+                Seen <CheckCheck className="size-3.5 text-read-tick" strokeWidth={2.5} />
               </span>
             </div>
           </div>

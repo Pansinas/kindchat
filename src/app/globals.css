@@ -23,6 +23,7 @@
   --destructive: #b4493f;
   --destructive-foreground: #fffdf9;
   --success: #4f7d5c;
+  --read-tick: #16a34a;
   --border: #e7e1d6;
   --input: #e2dbcf;
   --ring: #a99dd6;
@@ -52,6 +53,7 @@
   --destructive: #d46a5f;
   --destructive-foreground: #16151a;
   --success: #7fb08c;
+  --read-tick: #4ade80;
   --border: #2e2d36;
   --input: #34333d;
   --ring: #8e80c4;
@@ -80,6 +82,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
+  --color-read-tick: var(--read-tick);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

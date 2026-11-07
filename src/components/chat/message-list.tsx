@@ -2,12 +2,12 @@
 
 import { ArrowDown, MessageCircleHeart } from "lucide-react";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { MessageBubble } from "@/components/chat/message-bubble";
+import { MessageBubble, type QuotePreview } from "@/components/chat/message-bubble";
 import { useConversation } from "@/components/providers/conversation-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { deliveryStatus, isSameDay } from "@/lib/domain/messages";
+import { deliveryStatus, isSameDay, replySnippet, type Message } from "@/lib/domain/messages";
 import { formatDayLabel } from "@/lib/utils";
 
 const GROUP_WINDOW_MS = 5 * 60_000;
@@ -33,6 +33,36 @@ function ListSkeleton() {
 
 export function MessageList({ partnerName, emptyTitle, emptyBody }: { partnerName: string; emptyTitle?: string; emptyBody?: string }) {
   const c = useConversation();
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  // Quote block for a reply: who wrote the original and a one-line preview.
+  const quoteFor = (replyToId: string | null | undefined): QuotePreview | null => {
+    if (!replyToId) return null;
+    const original = c.findMessage(replyToId);
+    return {
+      author: !original ? "Message" : original.sender_id === c.userId ? "You" : partnerName,
+      text: replySnippet(original),
+      onClick: () => void jumpTo(replyToId),
+    };
+  };
+
+  // Scroll to (and briefly highlight) the original message, loading older pages if needed.
+  const jumpTo = async (id: string) => {
+    for (let i = 0; i < 20; i++) {
+      const el = document.getElementById(`msg-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightId(id);
+        window.setTimeout(() => setHighlightId((h) => (h === id ? null : h)), 1600);
+        return;
+      }
+      if (!c.hasMoreOlder) return;
+      await c.loadOlder();
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+    }
+  };
+
+  const reply = (m: Message) => c.setReplyingTo(m);
   const scrollRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
@@ -178,12 +208,16 @@ export function MessageList({ partnerName, emptyTitle, emptyBody }: { partnerNam
                   </div>
                 ) : null}
                 <MessageBubble
+                  messageId={m.id}
                   body={m.body}
                   createdAt={m.created_at}
                   mine={mine}
                   deleted={Boolean(m.deleted_at)}
                   status={mine ? deliveryStatus(m, partnerCursor) : undefined}
-                  groupedWithPrevious={grouped && firstUnreadSeq !== m.seq}
+                  groupedWithPrevious={grouped && firstUnreadSeq !== m.seq && !m.reply_to_id}
+                  quote={quoteFor(m.reply_to_id)}
+                  highlighted={highlightId === m.id}
+                  onReply={() => reply(m)}
                 />
               </Fragment>
             );
@@ -197,6 +231,7 @@ export function MessageList({ partnerName, emptyTitle, emptyBody }: { partnerNam
               mine
               status={p.status}
               groupedWithPrevious={false}
+              quote={quoteFor(p.reply_to_id)}
               onRetry={() => void c.retry(p.client_message_id)}
               onDiscard={() => c.discard(p.client_message_id)}
             />
