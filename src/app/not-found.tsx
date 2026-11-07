@@ -11,7 +11,7 @@ export default function NotFound() {
         <p className="mt-2 text-muted-foreground">It may have moved, or the link may be incomplete.</p>
       </div>
       <Button asChild variant="outline">
-        <Link href="/">Back to Pairvella</Link>
+        <Link href="/">Back to KindChat</Link>
       </Button>
     </div>
   );

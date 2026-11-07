@@ -61,7 +61,7 @@ export function InvitePanel() {
   async function share() {
     if (!link) return;
     try {
-      await navigator.share({ title: "Join me on Pairvella", text: "I made us a private space on Pairvella.", url: link });
+      await navigator.share({ title: "Join me on KindChat", text: "I made us a private space on KindChat.", url: link });
     } catch {
       // Share sheet dismissed.
     }

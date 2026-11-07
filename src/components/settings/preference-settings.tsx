@@ -49,10 +49,10 @@ export function NotificationSettings() {
   const s = state.settings;
   return (
     <div className="divide-y divide-border">
-      <SettingRow title="Sound" description="Play a soft chime for new messages while Pairvella is in the background.">
+      <SettingRow title="Sound" description="Play a soft chime for new messages while KindChat is in the background.">
         <Switch checked={s.notify_sound} onCheckedChange={(v) => update({ notify_sound: v })} aria-label="Sound" />
       </SettingRow>
-      <SettingRow title="Desktop notifications" description="Show a notification while Pairvella is open in another tab. Message text is never included.">
+      <SettingRow title="Desktop notifications" description="Show a notification while KindChat is open in another tab. Message text is never included.">
         <Switch
           checked={s.notify_desktop}
           aria-label="Desktop notifications"

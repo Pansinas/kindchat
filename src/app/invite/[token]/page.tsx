@@ -53,7 +53,7 @@ async function Invitation({ params }: { params: Promise<{ token: string }> }) {
           <p className="text-muted-foreground">
             The link may have expired, been used already, or been replaced by a newer one. Ask your partner to send a new link.
           </p>
-          <Link href="/" className="text-sm underline underline-offset-4">Go to Pairvella</Link>
+          <Link href="/" className="text-sm underline underline-offset-4">Go to KindChat</Link>
         </CardContent>
       </Card>
     );
@@ -73,7 +73,7 @@ async function Invitation({ params }: { params: Promise<{ token: string }> }) {
         </div>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-balance">
-            {invite.inviter_display_name} invited you to Pairvella
+            {invite.inviter_display_name} invited you to KindChat
           </h1>
           <p className="mt-2 text-muted-foreground">
             @{invite.inviter_username} wants to share a private space with you. Only the two of you will be able to see it.

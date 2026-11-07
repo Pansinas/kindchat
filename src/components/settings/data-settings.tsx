@@ -27,7 +27,7 @@ async function downloadExport(password: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `pairvella-export-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `kindchat-export-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }

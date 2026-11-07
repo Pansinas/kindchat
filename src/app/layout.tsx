@@ -8,9 +8,9 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "Pairvella — A quieter place for two", template: "%s · Pairvella" },
-  description: "Pairvella is a private messaging space for couples. Just the two of you, in real time, kept safe.",
-  applicationName: "Pairvella",
+  title: { default: "KindChat — A quieter place for two", template: "%s · KindChat" },
+  description: "KindChat is a private messaging space for couples. Just the two of you, in real time, kept safe.",
+  applicationName: "KindChat",
   robots: { index: true, follow: true },
 };
 

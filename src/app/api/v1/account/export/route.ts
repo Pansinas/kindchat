@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   return new Response(JSON.stringify(data, null, 2), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="pairvella-export-${date}.json"`,
+      "Content-Disposition": `attachment; filename="kindchat-export-${date}.json"`,
       "Cache-Control": "no-store",
     },
   });

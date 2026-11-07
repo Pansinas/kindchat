@@ -18,6 +18,6 @@ export const serverEnv = {
     return required("IP_HASH_SECRET");
   },
   resendApiKey: process.env.RESEND_API_KEY ?? "",
-  emailFrom: process.env.EMAIL_FROM ?? "Pairvella <no-reply@pairvella.app>",
+  emailFrom: process.env.EMAIL_FROM ?? "KindChat <no-reply@kindchat.app>",
   isProduction: process.env.NODE_ENV === "production",
 };

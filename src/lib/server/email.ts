@@ -35,7 +35,7 @@ export async function sendEmail(email: Email): Promise<boolean> {
 function layout(title: string, body: string, actionUrl: string, actionLabel: string): string {
   return `<!doctype html><html><body style="margin:0;background:#f7f4ee;font-family:Inter,Segoe UI,Arial,sans-serif;color:#2b2a33">
 <div style="max-width:480px;margin:40px auto;background:#fffdf9;border:1px solid #ebe5da;border-radius:16px;padding:32px">
-<p style="font-size:13px;letter-spacing:.2em;color:#7c6fa6;margin:0 0 24px">PAIRVELLA</p>
+<p style="font-size:16px;font-weight:600;color:#7c6fa6;margin:0 0 24px">KindChat</p>
 <h1 style="font-size:20px;font-weight:600;margin:0 0 12px">${title}</h1>
 <p style="font-size:15px;line-height:1.6;margin:0 0 24px">${body}</p>
 <a href="${actionUrl}" style="display:inline-block;background:#2b2a33;color:#fffdf9;text-decoration:none;padding:12px 20px;border-radius:999px;font-size:14px">${actionLabel}</a>
@@ -46,17 +46,17 @@ function layout(title: string, body: string, actionUrl: string, actionLabel: str
 export function passwordResetEmail(to: string, url: string): Email {
   return {
     to,
-    subject: "Reset your Pairvella password",
-    text: `Someone asked to reset the password for your Pairvella account.\n\nReset it here (valid for 1 hour): ${url}\n\nIf you didn't request this, ignore this email.`,
-    html: layout("Reset your password", "Someone asked to reset the password for your Pairvella account. This link is valid for one hour.", url, "Choose a new password"),
+    subject: "Reset your KindChat password",
+    text: `Someone asked to reset the password for your KindChat account.\n\nReset it here (valid for 1 hour): ${url}\n\nIf you didn't request this, ignore this email.`,
+    html: layout("Reset your password", "Someone asked to reset the password for your KindChat account. This link is valid for one hour.", url, "Choose a new password"),
   };
 }
 
 export function verifyRecoveryEmail(to: string, url: string): Email {
   return {
     to,
-    subject: "Confirm your Pairvella recovery email",
-    text: `Confirm this address as the recovery email for your Pairvella account (valid for 24 hours): ${url}`,
-    html: layout("Confirm your recovery email", "Confirm this address so you can recover your Pairvella account if you forget your password. The link is valid for 24 hours.", url, "Confirm email"),
+    subject: "Confirm your KindChat recovery email",
+    text: `Confirm this address as the recovery email for your KindChat account (valid for 24 hours): ${url}`,
+    html: layout("Confirm your recovery email", "Confirm this address so you can recover your KindChat account if you forget your password. The link is valid for 24 hours.", url, "Confirm email"),
   };
 }

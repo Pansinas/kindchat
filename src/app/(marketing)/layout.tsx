@@ -19,7 +19,7 @@ export default function MarketingLayout({ children }: LayoutProps<"/">) {
       <main className="flex-1">{children}</main>
       <footer className="border-t border-border">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <p>© 2026 Pairvella · A quieter place for two.</p>
+          <p>© 2026 KindChat · A quieter place for two.</p>
           <nav className="flex gap-5" aria-label="Legal">
             <Link className="hover:text-foreground" href="/privacy">Privacy</Link>
             <Link className="hover:text-foreground" href="/terms">Terms</Link>

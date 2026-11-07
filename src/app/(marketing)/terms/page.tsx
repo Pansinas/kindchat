@@ -7,9 +7,9 @@ export default function TermsPage() {
   return (
     <LegalPage title="Terms and conditions" updated="6 November 2026">
       <section>
-        <h2>Using Pairvella</h2>
+        <h2>Using KindChat</h2>
         <p>
-          Pairvella is a private messaging service for two people in a relationship. You must be at least 16 years old,
+          KindChat is a private messaging service for two people in a relationship. You must be at least 16 years old,
           or the age of digital consent where you live, to create an account.
         </p>
       </section>
@@ -48,7 +48,7 @@ export default function TermsPage() {
       <section>
         <h2>Availability</h2>
         <p>
-          We work hard to keep Pairvella reliable, but it is provided &quot;as is&quot;, and we can&apos;t guarantee
+          We work hard to keep KindChat reliable, but it is provided &quot;as is&quot;, and we can&apos;t guarantee
           it will always be available or error-free.
         </p>
       </section>

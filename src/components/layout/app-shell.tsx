@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <p className="truncate text-[13px] text-muted-foreground">@{partner.username}</p>
               </div>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">Together on Pairvella since {formatDate(state.couple!.paired_since)}</p>
+            <p className="mt-3 text-xs text-muted-foreground">Together on KindChat since {formatDate(state.couple!.paired_since)}</p>
           </div>
         ) : null}
         <nav className="flex flex-col gap-1 px-3" aria-label="Main">
