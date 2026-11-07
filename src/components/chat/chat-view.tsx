@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { ChatHeader } from "@/components/chat/chat-header";
-import { Composer } from "@/components/chat/composer";
-import { MessageList } from "@/components/chat/message-list";
+import { ChatPanel } from "@/components/chat/chat-panel";
 import { useAppState } from "@/components/providers/app-state-provider";
 import { useOptionalConversation } from "@/components/providers/conversation-provider";
 import { Button } from "@/components/ui/button";
@@ -12,15 +9,6 @@ import { Button } from "@/components/ui/button";
 export function ChatView() {
   const { state } = useAppState();
   const conversation = useOptionalConversation();
-  const setChatOpen = conversation?.setChatOpen;
-  const markRead = conversation?.markRead;
-
-  useEffect(() => {
-    if (!setChatOpen) return;
-    setChatOpen(true);
-    markRead?.();
-    return () => setChatOpen(false);
-  }, [setChatOpen, markRead]);
 
   if (!state.couple || !conversation) {
     return (
@@ -34,12 +22,5 @@ export function ChatView() {
     );
   }
 
-  const partner = state.couple.partner;
-  return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
-      <ChatHeader partner={partner} />
-      <MessageList partnerName={partner.display_name} />
-      <Composer partnerName={partner.display_name} />
-    </div>
-  );
+  return <ChatPanel partner={state.couple.partner} backHref="/dashboard" />;
 }

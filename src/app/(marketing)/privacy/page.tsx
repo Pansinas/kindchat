@@ -37,6 +37,21 @@ export default function PrivacyPage() {
         </p>
       </section>
       <section>
+        <h2>The KindChat team chat</h2>
+        <p>
+          Every account has a separate chat with the founder of KindChat, used for a welcome message, support and
+          feedback. Messages you send there are read by the founder. This chat is completely separate from your couple
+          space: the founder can never see conversations between you and your partner.
+        </p>
+      </section>
+      <section>
+        <h2>Your local time</h2>
+        <p>
+          Your device&apos;s time zone is stored so the people you chat with can see your local time when it differs
+          from theirs. It is never shown to anyone else.
+        </p>
+      </section>
+      <section>
         <h2>Online status and last seen</h2>
         <p>
           You can hide your online status and your last-seen time in Settings. If you hide your last seen, you also

@@ -251,4 +251,72 @@ select pg_temp.check((select count(*) from public.search_user_by_username('erin'
 select pg_temp.expect_error($$select public.send_connection_request('eeeeeeee-0000-0000-0000-000000000005')$$, 'NOT_AVAILABLE');
 reset role;
 
+-- ---------------------------------------------------------------- founder chat + time zones
+-- Before a founder is configured nobody has a founder chat.
+set role authenticated;
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+select pg_temp.check(public.get_my_state() -> 'founder_chat' = 'null'::jsonb, 'no founder chat before a founder is configured');
+select pg_temp.expect_error($$select public.founder_list_conversations()$$, 'FORBIDDEN');
+reset role;
+
+insert into auth.users (id, email) values ('ffffffff-0000-0000-0000-00000000000f', 'u.f@id.test');
+set role service_role;
+select public.server_provision_account('ffffffff-0000-0000-0000-00000000000f', 'Pansinas', 'Pansinas', 'u.f@id.test');
+reset role;
+select pg_temp.check(private.set_founder('pansinas') = 5, 'set_founder greets every existing user');
+select pg_temp.check((select count(*) from public.conversations where kind = 'founder') = 5, 'one founder chat per user');
+select pg_temp.check((select count(*) from public.messages m join public.conversations c on c.id = m.conversation_id where c.kind = 'founder') = 5, 'each user received exactly one greeting');
+select private.set_founder('pansinas');
+select pg_temp.check((select count(*) from public.messages m join public.conversations c on c.id = m.conversation_id where c.kind = 'founder') = 5, 'running set_founder again does not re-greet');
+
+-- New accounts are greeted automatically.
+insert into auth.users (id, email) values ('99999999-0000-0000-0000-000000000009', 'u.g@id.test');
+set role service_role;
+select public.server_provision_account('99999999-0000-0000-0000-000000000009', 'newbie', 'Newbie', 'u.g@id.test');
+reset role;
+
+set role authenticated;
+select pg_temp.as_user('99999999-0000-0000-0000-000000000009');
+create temp table fc as select (public.get_my_state() -> 'founder_chat' ->> 'conversation_id')::uuid as id;
+grant select on fc to authenticated;
+select pg_temp.check((select id from fc) is not null, 'new users get a founder chat');
+select pg_temp.check((public.get_my_state() -> 'founder_chat' ->> 'unread')::int = 1, 'the greeting is unread for the new user');
+select pg_temp.check((public.get_my_state() -> 'founder_chat' -> 'founder' ->> 'username') = 'Pansinas', 'founder card is visible to users');
+select pg_temp.check((select count(*) from public.messages where conversation_id = (select id from fc)) = 1, 'user can read their founder chat');
+select public.send_message((select id from fc), 'Hi! Thanks for the welcome.', gen_random_uuid());
+select pg_temp.check((select count(*) from public.messages where conversation_id = (select id from fc)) = 2, 'user can message the founder');
+select pg_temp.expect_error($$select public.founder_start_conversation('erin')$$, 'FORBIDDEN');
+select pg_temp.check((select count(*) from public.profiles) = 1, 'founder chat does not expose other profiles');
+
+-- Other users cannot read or post in someone else's founder chat.
+select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004');
+select pg_temp.check((select count(*) from public.messages where conversation_id = (select id from fc)) = 0, 'other users cannot read a founder chat');
+select pg_temp.expect_error($$select public.send_message((select id from fc), 'sneaky', gen_random_uuid())$$, 'NOT_A_MEMBER');
+select pg_temp.check((select count(*) from public.messages m join public.conversations c on c.id = m.conversation_id where c.kind = 'founder') = 1, 'users see only their own founder chat');
+select set_config('realtime.topic', 'conversation:' || (select id from fc), false);
+select pg_temp.check((select count(*) from realtime.messages where topic = realtime.topic()) = 0, 'other users cannot subscribe to a founder chat');
+-- Dave (paired with Carol) still sees his couple chat and Carol cannot see Dave's founder chat.
+select pg_temp.check((select count(*) from public.conversations where kind = 'couple') = 1, 'couple chat still visible alongside founder chat');
+
+-- The founder sees every founder chat, can reply and can start chats, but never sees couple chats.
+select pg_temp.as_user('ffffffff-0000-0000-0000-00000000000f');
+select pg_temp.check(jsonb_array_length(public.founder_list_conversations()) = 6, 'founder inbox lists every user');
+select pg_temp.check((public.get_my_state() ->> 'founder_inbox_unread')::int = 1, 'founder sees one unread reply');
+select public.send_message((select id from fc), 'Glad you are here!', gen_random_uuid());
+select pg_temp.check((select count(*) from public.messages m join public.conversations c on c.id = m.conversation_id where c.kind = 'couple') = 0, 'founder cannot read any couple conversation');
+select pg_temp.check(public.founder_start_conversation('@ERIN') = (select id from public.conversations where member_user_id = 'eeeeeeee-0000-0000-0000-000000000005'), 'founder can open a chat with any user by username');
+select pg_temp.expect_error($$select public.founder_start_conversation('nobody_xyz')$$, 'USER_NOT_FOUND');
+select pg_temp.expect_error($$select public.founder_start_conversation('pansinas')$$, 'INVALID_TARGET');
+reset role;
+select pg_temp.check((select count(*) from realtime.messages where topic like 'user:%' and event = 'founder.message') >= 2, 'founder chat messages notify the other side');
+
+-- Time zones: stored by the owner, shared with the partner.
+set role authenticated;
+select pg_temp.as_user('cccccccc-0000-0000-0000-000000000003');
+update public.user_settings set timezone = 'Asia/Kolkata' where user_id = auth.uid();
+select pg_temp.expect_error($$update public.user_settings set timezone = 'bad zone; drop' where user_id = auth.uid()$$, 'check constraint');
+select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004');
+select pg_temp.check((public.get_partner_status() ->> 'timezone') = 'Asia/Kolkata', 'partner time zone is shared with the partner');
+reset role;
+
 select 'ALL DATABASE TESTS PASSED' as result;

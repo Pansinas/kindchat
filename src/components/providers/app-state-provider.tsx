@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { fireAndForget, getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { browserTimeZone } from "@/lib/domain/timezone";
 import type { MyState } from "@/types/app";
 import { ConversationProvider } from "./conversation-provider";
 
@@ -14,6 +15,8 @@ interface AppStateValue {
   userId: string;
   refresh: () => Promise<void>;
   setSettingsLocal: (patch: Partial<MyState["settings"]>) => void;
+  /** Increments whenever a founder-chat message arrives (lets the founder inbox refresh). */
+  founderActivity: number;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -33,6 +36,7 @@ export function AppStateProvider({ initialState, children }: { initialState: MyS
   const router = useRouter();
   const { setTheme } = useTheme();
   const [state, setState] = useState<MyState>(initialState);
+  const [founderActivity, setFounderActivity] = useState(0);
   const userId = initialState.profile.id;
   const prevConversation = useRef<string | null>(initialState.couple?.conversation_id ?? null);
 
@@ -48,6 +52,19 @@ export function AppStateProvider({ initialState, children }: { initialState: MyS
   const setSettingsLocal = useCallback((patch: Partial<MyState["settings"]>) => {
     setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
   }, []);
+
+  // Keep the stored time zone in sync with this device (shared only with chat partners).
+  useEffect(() => {
+    const tz = browserTimeZone();
+    if (!tz || tz === initialState.settings.timezone) return;
+    supabase
+      .from("user_settings")
+      .update({ timezone: tz })
+      .eq("user_id", initialState.profile.id)
+      .then(({ error }) => {
+        if (!error) setState((s) => ({ ...s, settings: { ...s.settings, timezone: tz } }));
+      });
+  }, [supabase, initialState.settings.timezone, initialState.profile.id]);
 
   // Apply the stored theme preference once.
   useEffect(() => {
@@ -84,6 +101,10 @@ export function AppStateProvider({ initialState, children }: { initialState: MyS
         .on("broadcast", { event: "request.updated" }, () => void refresh())
         .on("broadcast", { event: "pairing.created" }, () => void refresh())
         .on("broadcast", { event: "pairing.ended" }, () => void refresh())
+        .on("broadcast", { event: "founder.message" }, () => {
+          setFounderActivity((n) => n + 1);
+          void refresh();
+        })
         .subscribe((status) => {
           if (status === "SUBSCRIBED") void refresh();
         });
@@ -114,7 +135,10 @@ export function AppStateProvider({ initialState, children }: { initialState: MyS
     };
   }, [supabase, refresh]);
 
-  const value = useMemo(() => ({ state, userId, refresh, setSettingsLocal }), [state, userId, refresh, setSettingsLocal]);
+  const value = useMemo(
+    () => ({ state, userId, refresh, setSettingsLocal, founderActivity }),
+    [state, userId, refresh, setSettingsLocal, founderActivity],
+  );
 
   return (
     <AppStateContext value={value}>
@@ -126,6 +150,7 @@ export function AppStateProvider({ initialState, children }: { initialState: MyS
           partnerId={state.couple.partner.id}
           partnerName={state.couple.partner.display_name}
           settings={state.settings}
+          kind="couple"
         >
           {children}
         </ConversationProvider>

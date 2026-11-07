@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
 
-const APP_PREFIXES = ["/dashboard", "/chat", "/connect", "/settings", "/onboarding"];
+const APP_PREFIXES = ["/dashboard", "/chat", "/connect", "/settings", "/onboarding", "/team", "/inbox"];
 const GUEST_ONLY = ["/login", "/register"];
 
 /**
