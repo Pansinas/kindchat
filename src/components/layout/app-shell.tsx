@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, LogOut, MessageCircle, Settings, UserPlus } from "lucide-react";
+import { Home, Inbox, LogOut, MessageCircle, Settings, Sparkles, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -15,14 +15,25 @@ function useNav() {
   const { state } = useAppState();
   const paired = Boolean(state.couple);
   const requests = state.incoming_requests.length;
-  return [
-    { href: "/dashboard", label: "Home", icon: Home, badge: 0 },
+  const items = [
+    { href: "/dashboard", label: "Home", shortLabel: "Home", icon: Home, badge: 0 },
     paired
-      ? { href: "/chat", label: "Chat", icon: MessageCircle, badge: -1 }
-      : { href: "/connect", label: "Connect", icon: UserPlus, badge: requests },
-    { href: "/settings", label: "Settings", icon: Settings, badge: 0 },
+      ? { href: "/chat", label: "Chat", shortLabel: "Chat", icon: MessageCircle, badge: -1 }
+      : { href: "/connect", label: "Connect", shortLabel: "Connect", icon: UserPlus, badge: requests },
   ];
+  if (state.is_founder) {
+    items.push({ href: "/inbox", label: "Inbox", shortLabel: "Inbox", icon: Inbox, badge: state.founder_inbox_unread });
+  } else if (state.founder_chat) {
+    items.push({ href: "/team", label: "KindChat team", shortLabel: "Team", icon: Sparkles, badge: state.founder_chat.unread });
+  }
+  items.push({ href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings, badge: 0 });
+  return items;
 }
+
+/** Routes that render a full-height conversation layout. */
+const FULL_HEIGHT = ["/chat", "/team", "/inbox"];
+/** Routes where the mobile top bar and bottom navigation are hidden (immersive chat). */
+const IMMERSIVE = ["/chat", "/team"];
 
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -39,7 +50,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const conversation = useOptionalConversation();
   const nav = useNav();
   const unread = conversation?.unread ?? 0;
-  const isChat = pathname === "/chat";
+  const isChat = IMMERSIVE.includes(pathname);
+  const fullHeight = FULL_HEIGHT.includes(pathname);
   const partner = state.couple?.partner;
 
   return (
@@ -111,17 +123,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
         ) : null}
 
-        <main id="main" className={cn("min-h-0 flex-1", isChat ? "flex flex-col" : "overflow-y-auto")}>
+        <main id="main" className={cn("min-h-0 flex-1", fullHeight ? "flex flex-col" : "overflow-y-auto")}>
           {children}
         </main>
 
         {/* Mobile bottom navigation */}
         {!isChat ? (
           <nav
-            className="grid grid-cols-3 border-t border-border bg-card/90 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+            className="grid border-t border-border bg-card/90 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+            style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
             aria-label="Main"
           >
-            {nav.map(({ href, label, icon: Icon, badge }) => {
+            {nav.map(({ href, shortLabel: label, icon: Icon, badge }) => {
               const active = pathname === href;
               const count = badge === -1 ? unread : badge;
               return (

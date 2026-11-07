@@ -39,6 +39,7 @@ interface State {
   partnerOnline: boolean;
   partnerLastSeen: string | null;
   lastSeenVisible: boolean;
+  partnerTimezone: string | null;
   connection: Connection;
 }
 
@@ -68,6 +69,7 @@ const initialState: State = {
   partnerOnline: false,
   partnerLastSeen: null,
   lastSeenVisible: true,
+  partnerTimezone: null,
   connection: "connecting",
 };
 
@@ -115,6 +117,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         partnerLastSeen: action.status?.last_seen_at ?? null,
         lastSeenVisible: action.status?.last_seen_visible ?? false,
+        partnerTimezone: action.status?.timezone ?? state.partnerTimezone,
       };
     case "connection":
       return { ...state, connection: action.value };
@@ -190,6 +193,10 @@ interface ProviderProps {
   partnerId: string;
   partnerName: string;
   settings: UserSettings;
+  /** "couple" = the partner chat; "founder" = a KindChat team chat (no last-seen, no tab badge). */
+  kind: "couple" | "founder";
+  /** Time zone of the other person when it is known up front (founder chats). */
+  partnerTimezone?: string | null;
   children: ReactNode;
 }
 
@@ -198,9 +205,9 @@ interface ProviderProps {
  * private Realtime channels, gap-fill after reconnects, receipts, typing and presence.
  * Postgres is the source of truth; Realtime only accelerates delivery.
  */
-export function ConversationProvider({ conversationId, userId, partnerId, partnerName, settings, children }: ProviderProps) {
+export function ConversationProvider({ conversationId, userId, partnerId, partnerName, settings, kind, partnerTimezone, children }: ProviderProps) {
   const supabase = getSupabaseBrowserClient();
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, { ...initialState, partnerTimezone: partnerTimezone ?? null });
   const stateRef = useRef(state);
   const settingsRef = useRef(settings);
   // Keep refs current for async callbacks (updated after render, never during it).
@@ -247,9 +254,11 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
   }, [fetchSince, supabase, conversationId]);
 
   const loadPartnerStatus = useCallback(async () => {
+    // Last seen and partner status apply to the couple partner only.
+    if (kind !== "couple") return;
     const { data } = await supabase.rpc("get_partner_status");
     dispatch({ type: "lastSeen", status: (data as PartnerStatus | null) ?? null });
-  }, [supabase]);
+  }, [supabase, kind]);
 
   // Initial load from Postgres.
   useEffect(() => {
@@ -513,11 +522,12 @@ export function ConversationProvider({ conversationId, userId, partnerId, partne
     return state.messages.filter((m) => m.sender_id === partnerId && !m.deleted_at && m.seq > lastRead).length;
   }, [state.messages, state.cursors, userId, partnerId]);
 
-  // Unread badge in the tab title.
+  // Unread badge in the tab title (couple chat only).
   useEffect(() => {
+    if (kind !== "couple") return;
     const base = document.title.replace(/^\(\d+\+?\)\s*/, "");
     document.title = unread > 0 ? `(${unread >= PAGE_SIZE ? `${PAGE_SIZE}+` : unread}) ${base}` : base;
-  }, [unread]);
+  }, [unread, kind]);
 
   const value = useMemo<ConversationValue>(
     () => ({

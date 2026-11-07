@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowRight, Clock, MessageCircle, UserPlus } from "lucide-react";
+import { ArrowRight, Clock, MessageCircle, Sparkles, UserPlus } from "lucide-react";
 import Link from "next/link";
+import { PartnerLocalTime } from "@/components/chat/partner-local-time";
 import { PageHeader } from "@/components/layout/page-header";
 import { RequestList } from "@/components/pairing/request-list";
 import { useAppState } from "@/components/providers/app-state-provider";
@@ -57,6 +58,12 @@ export function DashboardView() {
                     : ""}
               </p>
               {state.couple.partner.bio ? <p className="mt-2 text-[15px] text-foreground/80">{state.couple.partner.bio}</p> : null}
+              <PartnerLocalTime
+                className="mt-2 text-sm"
+                partnerName={state.couple.partner.display_name}
+                partnerTimezone={conversation?.partnerTimezone}
+                myTimezone={state.settings.timezone}
+              />
               <p className="mt-2 text-xs text-muted-foreground">Connected since {formatDate(state.couple.paired_since)}</p>
             </div>
             <Button asChild size="lg" className="sm:self-center">
@@ -107,6 +114,40 @@ export function DashboardView() {
           ) : null}
         </div>
       )}
+
+      {state.founder_chat ? (
+        <Link
+          href="/team"
+          className="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 transition-colors hover:bg-muted"
+        >
+          <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <Sparkles className="size-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-medium">KindChat team</span>
+            <span className="block truncate text-sm text-muted-foreground">
+              {state.founder_chat.unread ? `${state.founder_chat.unread} new from the founder` : "Questions or ideas? Message the founder."}
+            </span>
+          </span>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </Link>
+      ) : state.is_founder ? (
+        <Link
+          href="/inbox"
+          className="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 transition-colors hover:bg-muted"
+        >
+          <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <Sparkles className="size-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-medium">Founder inbox</span>
+            <span className="block truncate text-sm text-muted-foreground">
+              {state.founder_inbox_unread ? `${state.founder_inbox_unread} unread messages from users` : "Your conversations with every user."}
+            </span>
+          </span>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </Link>
+      ) : null}
     </div>
   );
 }

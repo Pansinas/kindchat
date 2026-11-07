@@ -31,7 +31,7 @@ function ListSkeleton() {
   );
 }
 
-export function MessageList({ partnerName }: { partnerName: string }) {
+export function MessageList({ partnerName, emptyTitle, emptyBody }: { partnerName: string; emptyTitle?: string; emptyBody?: string }) {
   const c = useConversation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
@@ -158,8 +158,8 @@ export function MessageList({ partnerName }: { partnerName: string }) {
               <span className="flex size-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
                 <MessageCircleHeart className="size-7" />
               </span>
-              <p className="text-lg font-medium">Your space is ready</p>
-              <p className="max-w-xs text-sm text-muted-foreground">Say hello to {partnerName}. Only the two of you can see this conversation.</p>
+              <p className="text-lg font-medium">{emptyTitle ?? "Your space is ready"}</p>
+              <p className="max-w-xs text-sm text-muted-foreground">{emptyBody ?? `Say hello to ${partnerName}. Only the two of you can see this conversation.`}</p>
             </div>
           ) : null}
 

@@ -19,6 +19,7 @@ export interface UserSettings {
   theme: "system" | "light" | "dark";
   notify_sound: boolean;
   notify_desktop: boolean;
+  timezone: string | null;
   updated_at: string;
 }
 
@@ -43,6 +44,17 @@ export interface MyState {
   outgoing_requests: ConnectionRequestItem[];
   invitation: { id: string; created_at: string; expires_at: string } | null;
   ended_couple: { couple_space_id: string; ended_at: string; purge_after: string; end_reason: string } | null;
+  is_founder: boolean;
+  founder_chat: { conversation_id: string; founder: ProfileCard & { timezone: string | null }; unread: number } | null;
+  founder_inbox_unread: number;
+}
+
+export interface FounderInboxItem {
+  conversation_id: string;
+  user: ProfileCard & { timezone: string | null };
+  last_message_at: string | null;
+  last_message: { body: string | null; from_founder: boolean } | null;
+  unread: number;
 }
 
 export interface SearchResult extends ProfileCard {
@@ -53,4 +65,5 @@ export interface PartnerStatus {
   partner_id: string;
   last_seen_at: string | null;
   last_seen_visible: boolean;
+  timezone: string | null;
 }
